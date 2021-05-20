@@ -9,6 +9,7 @@ import {
     View
 } from 'react-native'
 import { Feather } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/core';
 
 import wateringImg from '../assets/watering.png';
 import colors from '../styles/colors';
@@ -19,6 +20,12 @@ import Constants from 'expo-constants';
 const statusBarHeight = Constants.statusBarHeight
 // fim da declaração para configuração usada para que o texto não fique atrás do status bar
 export function Welcome(){
+    const navigation = useNavigation();
+
+    function handleStart(){
+        navigation.navigate('UserIdentification');
+    }
+
 
     return(
         <SafeAreaView style={styles.container}>
@@ -43,6 +50,7 @@ export function Welcome(){
                 <TouchableOpacity 
                     style={styles.button}
                     activeOpacity={0.7} //controla efeito do clique
+                    onPress={handleStart}
                 >
 
                     <Text>
