@@ -1,21 +1,61 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     SafeAreaView,
     View,
     Text,
-    StyleSheet
+    StyleSheet,
+    FlatList
 } from 'react-native';
+import { EnviromentButton } from '../components/EnviromentButton';
 import { Header } from '../components/Header';
 
 import colors from '../styles/colors';
 import fonts from '../styles/fonts';
+import api from '../services/api';
 
 //*inicio* usando para que o texto não fique atrás do status bar no Android
 import Constants from 'expo-constants';
 const statusBarHeight = Constants.statusBarHeight;
 /*fim*/
 
+interface EnviromentProps {
+    key: string;
+    title: string;
+}
+
+// interface PlantProps {
+//     id: string;
+//     name: string;
+//     about: string;
+//     water_tips: string;
+//     photo: string;
+//     environments: [string];
+//     frequency: {
+//         times: number
+//         repeat_every: string
+//     };
+// }
+
 export function PlantSelect(){
+    const [enviroments, setEnvirtoments] = useState<EnviromentProps[]>([]);
+    // const [plants, setPlants] = useState<PlantProps[]>([]);
+ 
+    useEffect(() => {
+        async function fetchEnviroment(){
+            const {data} = await api.get('plants_environments');
+            setEnvirtoments([
+                {
+                    key: 'all',
+                    title: 'Todos',
+                },
+                ...data    
+            ]);
+        }
+
+        fetchEnviroment();
+
+    },[])//carrega antes do carregamento da tela
+
     return (
         <SafeAreaView style = {styles.container}>
             <View>
@@ -29,6 +69,27 @@ export function PlantSelect(){
                         você quer colocar sua planta?
                     </Text>
                 </View>
+
+                <View>
+                    <FlatList
+                        data={enviroments}
+                        renderItem={({ item }) => (
+                            <EnviromentButton 
+                                title={item.title}
+                               
+                            />
+                        )}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.enviromentList}  
+                    />
+                </View>
+                {/* <View style={styles.plants}>
+                    <FlatList 
+                    
+                    />        
+                </View> */}
+
             </View>
         </SafeAreaView>
     )
@@ -64,5 +125,17 @@ const styles = StyleSheet.create({
         fontFamily: fonts.text,
         color: colors.heading,
         lineHeight: 20
+    },
+    enviromentList: {
+        height: 40,
+        justifyContent: 'center',
+        paddingBottom: 5,
+        marginLeft: 32,
+        marginVertical: 32
+    },
+    plants: {
+        flex: 1,
+        paddingHorizontal: 32,
+        justifyContent: 'center'
     }
 })
