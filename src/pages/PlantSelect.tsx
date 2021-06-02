@@ -7,7 +7,9 @@ import {
     FlatList,
 } from 'react-native';
 import { EnviromentButton } from '../components/EnviromentButton';
+import { PlantCardPrimary } from '../components/PlantCardPrimary';
 import { Header } from '../components/Header';
+import { Load } from '../components/Load'
 
 import colors from '../styles/colors';
 import fonts from '../styles/fonts';
@@ -15,7 +17,6 @@ import api from '../services/api';
 
 //*inicio* usando para que o texto não fique atrás do status bar no Android
 import Constants from 'expo-constants';
-import { PlantCardPrimary } from '../components/PlantCardPrimary';
 const statusBarHeight = Constants.statusBarHeight;
 /*fim*/
 
@@ -39,10 +40,26 @@ interface PlantProps {
 export function PlantSelect(){
     const [enviroments, setEnvirtoments] = useState<EnviromentProps[]>([]);
     const [plants, setPlants] = useState<PlantProps[]>([]);
+    const [filteredPlants, setFilteredPlants] = useState<PlantProps[]>([]);//estado auxiliar para filtrar, isso ajuda a não ficar requisitando tanto a API
+    const [enviromentSelected, setEnviromentSelected] = useState('all');
+    const [loading, setLoading] = useState(true);
+
+    function handleEnviromentSelected(enviroment: string){
+        setEnviromentSelected(enviroment);
+
+        if(enviroment == 'all')
+            return setFilteredPlants(plants);
+        
+        const filtered = plants.filter(plant =>
+          plant.environments.includes(enviroment)  
+        );
+
+        setFilteredPlants(filtered);
+    }
  
     useEffect(() => {
         async function fetchEnviroment(){
-            const {data} = await api.get('plants_environments');
+            const {data} = await api.get('plants_environments?_sort=title&_order=asc');
             setEnvirtoments([
                 {
                     key: 'all',
@@ -58,14 +75,17 @@ export function PlantSelect(){
 
     useEffect(() => {
         async function fetchPlants(){
-            const {data} = await api.get('plants');
+            const {data} = await api.get('plants?_sort=name &_order=asc');
             setPlants(data);
+            setFilteredPlants(data);
+            setLoading(false)
         }
 
         fetchPlants();
     },[])
 
-
+    if(loading)
+        return <Load/>
 
     return (
         <SafeAreaView style = {styles.container}>
@@ -87,6 +107,8 @@ export function PlantSelect(){
                         renderItem={({ item }) => (
                             <EnviromentButton 
                                 title={item.title}
+                                active={item.key === enviromentSelected}
+                                onPress={() => handleEnviromentSelected(item.key)}
                             />
                         )}
                         horizontal
@@ -97,7 +119,7 @@ export function PlantSelect(){
 
                 <View style = {styles.plants}>
                     <FlatList 
-                        data = {plants}
+                        data = {filteredPlants}
                         keyExtractor={item => String(item.id)}
                         renderItem={({ item }) => (
                             
@@ -105,8 +127,7 @@ export function PlantSelect(){
                             
                         )}
                         showsVerticalScrollIndicator={false}
-                        numColumns={2}
-                                                
+                        numColumns={2}                                                  
                     />
 
                 </View>
